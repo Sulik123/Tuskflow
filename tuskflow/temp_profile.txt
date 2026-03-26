@@ -1,0 +1,346 @@
+﻿}
+                Text(
+                  provider.isOnline ? 'ÐžÐ½Ð»Ð°Ð¹Ð½' : 'ÐžÑ„Ð»Ð°Ð¹Ð½',
+                  style: TextStyle(
+                    color: provider.isOnline ? AppColors.successGreen : AppColors.overdue,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // ÐŸÐµÑ€ÐµÐºÐ»ÑŽÑ‡Ð°Ñ‚ÐµÐ»ÑŒ Ñ€ÐµÐ¶Ð¸Ð¼Ð°
+            _buildGuestModeToggle(provider),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ÐŸÐµÑ€ÐµÐºÐ»ÑŽÑ‡Ð°Ñ‚ÐµÐ»ÑŒ Ð³Ð¾ÑÑ‚ÐµÐ²Ð¾Ð³Ð¾ Ñ€ÐµÐ¶Ð¸Ð¼Ð°
+  Widget _buildGuestModeToggle(TaskProvider provider) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: provider.isGuestMode
+            ? AppColors.primaryPurple.withOpacity(0.1)
+            : AppColors.successGreen.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            provider.isGuestMode ? Icons.person_outline : Icons.person,
+            color: provider.isGuestMode ? AppColors.primaryPurple : AppColors.successGreen,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            provider.isGuestMode ? 'Ð“Ð¾ÑÑ‚ÐµÐ²Ð¾Ð¹ Ñ€ÐµÐ¶Ð¸Ð¼' : 'ÐÐ²Ñ‚Ð¾Ñ€Ð¸Ð·Ð¾Ð²Ð°Ð½',
+            style: TextStyle(
+              color: provider.isGuestMode ? AppColors.primaryPurple : AppColors.successGreen,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Switch(
+            value: !provider.isGuestMode,
+            onChanged: (value) async {
+              await provider.toggleGuestMode();
+              if (provider.isGuestMode) {
+                _showGuestModeInfo(context);
+              }
+            },
+            activeThumbColor: AppColors.successGreen,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ð¡ÐµÐºÑ†Ð¸Ñ Ð½Ð°ÑÑ‚Ñ€Ð¾ÐµÐº
+  Widget _buildSettingsSection(TaskProvider provider) {
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          // Ð¡Ð¸Ð½Ñ…Ñ€Ð¾Ð½Ð¸Ð·Ð°Ñ†Ð¸Ñ
+          if (!provider.isGuestMode)
+            ListTile(
+              leading: const Icon(Icons.sync),
+              title: const Text('Ð¡Ð¸Ð½Ñ…Ñ€Ð¾Ð½Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð´Ð°Ð½Ð½Ñ‹Ðµ'),
+              subtitle: const Text('ÐžÐ±Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ñ ÑÐµÑ€Ð²ÐµÑ€Ð°'),
+              trailing: provider.isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.chevron_right),
+              onTap: provider.isLoading
+                  ? null
+                  : () async {
+                      await provider.syncWithServer();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Ð”Ð°Ð½Ð½Ñ‹Ðµ ÑÐ¸Ð½Ñ…Ñ€Ð¾Ð½Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½Ñ‹')),
+                        );
+                      }
+                    },
+            ),
+
+          // ÐžÑ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ñ‹Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ
+          ListTile(
+            leading: Icon(Icons.delete_sweep, color: AppColors.overdue),
+            title: const Text('ÐžÑ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ñ‹Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ'),
+            subtitle: const Text('Ð£Ð´Ð°Ð»Ð¸Ñ‚ÑŒ Ð²ÑÐµ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ñ‹Ðµ Ð·Ð°Ð´Ð°Ñ‡Ð¸'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showClearDataDialog(context, provider),
+          ),
+
+          const Divider(),
+
+          // Ð£Ð²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ (Ð·Ð°Ð³Ð»ÑƒÑˆÐºÐ°)
+          ListTile(
+            leading: const Icon(Icons.notifications),
+            title: const Text('Ð£Ð²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ñ'),
+            subtitle: const Text('ÐÐ°ÑÑ‚Ñ€Ð¾Ð¸Ñ‚ÑŒ Ð½Ð°Ð¿Ð¾Ð¼Ð¸Ð½Ð°Ð½Ð¸Ñ'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // TODO: Ð ÐµÐ°Ð»Ð¸Ð·Ð¾Ð²Ð°Ñ‚ÑŒ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ð¹
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Ð¤ÑƒÐ½ÐºÑ†Ð¸Ñ Ð² Ñ€Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐµ')),
+              );
+            },
+          ),
+
+          // Ð¢ÐµÐ¼Ð° (Ð·Ð°Ð³Ð»ÑƒÑˆÐºÐ°)
+          ListTile(
+            leading: const Icon(Icons.palette),
+            title: const Text('Ð¢ÐµÐ¼Ð°'),
+            subtitle: const Text('Ð’Ñ‹Ð±Ñ€Ð°Ñ‚ÑŒ Ñ†Ð²ÐµÑ‚Ð¾Ð²ÑƒÑŽ ÑÑ…ÐµÐ¼Ñƒ'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // TODO: Ð ÐµÐ°Ð»Ð¸Ð·Ð¾Ð²Ð°Ñ‚ÑŒ Ð²Ñ‹Ð±Ð¾Ñ€ Ñ‚ÐµÐ¼Ñ‹
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Ð¤ÑƒÐ½ÐºÑ†Ð¸Ñ Ð² Ñ€Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐµ')),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ð¡ÐµÐºÑ†Ð¸Ñ ÑÑ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ¸
+  Widget _buildStatisticsSection(TaskProvider provider) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ð¡Ñ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ°',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            FutureBuilder<Map<String, dynamic>>(
+              future: provider.getStatistics(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final stats = snapshot.data!;
+                final total = stats['total_tasks'] ?? 0;
+                final completed = stats['completed_tasks'] ?? 0;
+                final overdue = stats['overdue_tasks'] ?? 0;
+                final completionRate = stats['completion_rate'] ?? 0;
+
+                return Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatItem('Ð’ÑÐµÐ³Ð¾', total.toString()),
+                        _buildStatItem('Ð’Ñ‹Ð¿Ð¾Ð»Ð½ÐµÐ½Ð¾', completed.toString()),
+                        _buildStatItem('ÐŸÑ€Ð¾ÑÑ€Ð¾Ñ‡ÐµÐ½Ð¾', overdue.toString()),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    LinearProgressIndicator(
+                      value: total > 0 ? completed / total : 0,
+                      backgroundColor: AppColors.textSecondary.withOpacity(0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.successGreen),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'ÐŸÑ€Ð¾Ñ†ÐµÐ½Ñ‚ Ð²Ñ‹Ð¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ñ: ${completionRate.round()}%',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Ð­Ð»ÐµÐ¼ÐµÐ½Ñ‚ ÑÑ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ¸
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryPurple,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Ð¡ÐµÐºÑ†Ð¸Ñ "Ðž Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¸"
+  Widget _buildAboutSection() {
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: const Text('Ðž Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¸'),
+            subtitle: const Text('TaskFlow v1.0.0'),
+            onTap: () => _showAboutDialog(context),
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.code),
+            title: const Text('Ð˜ÑÑ…Ð¾Ð´Ð½Ñ‹Ð¹ ÐºÐ¾Ð´'),
+            subtitle: const Text('ÐŸÐ¾ÑÐ¼Ð¾Ñ‚Ñ€ÐµÑ‚ÑŒ Ð½Ð° GitHub'),
+            onTap: () {
+              // TODO: ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ GitHub
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Ð¤ÑƒÐ½ÐºÑ†Ð¸Ñ Ð² Ñ€Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐµ')),
+              );
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.bug_report),
+            title: const Text('Ð¡Ð¾Ð¾Ð±Ñ‰Ð¸Ñ‚ÑŒ Ð¾Ð± Ð¾ÑˆÐ¸Ð±ÐºÐµ'),
+            subtitle: const Text('ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ Ð¾Ñ‚Ð·Ñ‹Ð² Ñ€Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚Ñ‡Ð¸ÐºÐ°Ð¼'),
+            onTap: () {
+              // TODO: ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ñ„Ð¾Ñ€Ð¼Ñƒ Ð¾Ð±Ñ€Ð°Ñ‚Ð½Ð¾Ð¹ ÑÐ²ÑÐ·Ð¸
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Ð¤ÑƒÐ½ÐºÑ†Ð¸Ñ Ð² Ñ€Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐµ')),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ð”Ð¸Ð°Ð»Ð¾Ð³ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¸ Ð¾ Ð³Ð¾ÑÑ‚ÐµÐ²Ð¾Ð¼ Ñ€ÐµÐ¶Ð¸Ð¼Ðµ
+  void _showGuestModeInfo(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ð“Ð¾ÑÑ‚ÐµÐ²Ð¾Ð¹ Ñ€ÐµÐ¶Ð¸Ð¼'),
+        content: const Text(
+          'Ð’ Ð³Ð¾ÑÑ‚ÐµÐ²Ð¾Ð¼ Ñ€ÐµÐ¶Ð¸Ð¼Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ñ…Ñ€Ð°Ð½ÑÑ‚ÑÑ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾ Ð½Ð° ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ðµ. '
+          'Ð”Ð»Ñ ÑÐ¸Ð½Ñ…Ñ€Ð¾Ð½Ð¸Ð·Ð°Ñ†Ð¸Ð¸ Ñ ÑÐµÑ€Ð²ÐµÑ€Ð¾Ð¼ Ð½ÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ð¾ Ð°Ð²Ñ‚Ð¾Ñ€Ð¸Ð·Ð¾Ð²Ð°Ñ‚ÑŒÑÑ.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('ÐŸÐ¾Ð½ÑÑ‚Ð½Ð¾'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ð”Ð¸Ð°Ð»Ð¾Ð³ Ð¿Ð¾Ð´Ñ‚Ð²ÐµÑ€Ð¶Ð´ÐµÐ½Ð¸Ñ Ð¾Ñ‡Ð¸ÑÑ‚ÐºÐ¸ Ð´Ð°Ð½Ð½Ñ‹Ñ…
+  Future<void> _showClearDataDialog(BuildContext context, TaskProvider provider) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('ÐžÑ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ Ð´Ð°Ð½Ð½Ñ‹Ðµ?'),
+        content: const Text(
+          'Ð’ÑÐµ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ñ‹Ðµ Ð·Ð°Ð´Ð°Ñ‡Ð¸ Ð±ÑƒÐ´ÑƒÑ‚ ÑƒÐ´Ð°Ð»ÐµÐ½Ñ‹. Ð­Ñ‚Ð¾ Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸Ðµ Ð½ÐµÐ»ÑŒÐ·Ñ Ð¾Ñ‚Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('ÐžÑ‚Ð¼ÐµÐ½Ð°'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.overdue,
+            ),
+            child: const Text('ÐžÑ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await provider.localStorage.clearAll();
+      await provider.loadLocalData();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ð”Ð°Ð½Ð½Ñ‹Ðµ Ð¾Ñ‡Ð¸Ñ‰ÐµÐ½Ñ‹')),
+        );
+      }
+    }
+  }
+
+  /// Ð”Ð¸Ð°Ð»Ð¾Ð³ "Ðž Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¸"
+  void _showAboutDialog(BuildContext context) {
+    showAboutDialog(
+      context: context,
+      applicationName: 'TaskFlow',
+      applicationVersion: '1.0.0',
+      applicationLegalese: 'Â© 2024 TaskFlow Team',
+      children: [
+        const SizedBox(height: 16),
+        const Text(
+          'TaskFlow - ÑƒÐ´Ð¾Ð±Ð½Ð¾Ðµ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ðµ Ð´Ð»Ñ ÑƒÐ¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ñ Ð·Ð°Ð´Ð°Ñ‡Ð°Ð¼Ð¸. '
+          'Ð¡Ð¾Ð·Ð´Ð°Ð²Ð°Ð¹Ñ‚Ðµ, Ñ€ÐµÐ´Ð°ÐºÑ‚Ð¸Ñ€ÑƒÐ¹Ñ‚Ðµ Ð¸ Ð¾Ñ‚ÑÐ»ÐµÐ¶Ð¸Ð²Ð°Ð¹Ñ‚Ðµ Ð²Ñ‹Ð¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ðµ ÑÐ²Ð¾Ð¸Ñ… Ð·Ð°Ð´Ð°Ñ‡.',
+        ),
+      ],
+    );
+  }
+}
